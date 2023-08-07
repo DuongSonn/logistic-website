@@ -1,32 +1,24 @@
 import React, { useEffect } from "react";
 import { getLocalStorageItem } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
-import {
-    AppstoreOutlined,
-    BarChartOutlined,
-    CloudOutlined,
-    ShopOutlined,
-    TeamOutlined,
-    UploadOutlined,
-    UserOutlined,
-    VideoCameraOutlined,
-} from "@ant-design/icons";
-import { Layout, Menu, theme } from "antd";
-const { Header, Content, Footer, Sider } = Layout;
+import { OrderedListOutlined, MessageOutlined } from "@ant-design/icons";
+import { Layout, Menu } from "antd";
+const { Content, Footer, Sider } = Layout;
+
+function getItem(label, key, icon, children, type) {
+    return {
+        key,
+        icon,
+        children,
+        label,
+        type,
+    };
+}
+
 const items = [
-    UserOutlined,
-    VideoCameraOutlined,
-    UploadOutlined,
-    BarChartOutlined,
-    CloudOutlined,
-    AppstoreOutlined,
-    TeamOutlined,
-    ShopOutlined,
-].map((icon, index) => ({
-    key: String(index + 1),
-    icon: React.createElement(icon),
-    label: `nav ${index + 1}`,
-}));
+    getItem("Orders", "orders", <OrderedListOutlined />, null),
+    getItem("Chat", "chat", <MessageOutlined />, null),
+];
 
 function BaseLayout({ children }) {
     const navigate = useNavigate();
@@ -37,6 +29,10 @@ function BaseLayout({ children }) {
             navigate("/login");
         }
     }, []);
+
+    const onClickItem = (e) => {
+        navigate(`/${e.keyPath[0]}`);
+    };
 
     return (
         <Layout hasSider>
@@ -56,6 +52,7 @@ function BaseLayout({ children }) {
                     mode="inline"
                     defaultSelectedKeys={["4"]}
                     items={items}
+                    onClick={onClickItem}
                 />
             </Sider>
             <Layout
@@ -72,13 +69,6 @@ function BaseLayout({ children }) {
                 >
                     {children}
                 </Content>
-                <Footer
-                    style={{
-                        textAlign: "center",
-                    }}
-                >
-                    Ant Design ©2023 Created by Ant UED
-                </Footer>
             </Layout>
         </Layout>
     );

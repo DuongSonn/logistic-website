@@ -3,12 +3,16 @@ import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
+import Chat from "./Chat";
+import Orders from "./Orders";
 
 function App() {
     return (
         <Routes>
             <Route path="/*" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/chat" element={<Chat />} />
         </Routes>
     );
 }
