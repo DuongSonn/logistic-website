@@ -18,9 +18,11 @@ class UserFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-    {
+    {   
+        $name = fake()->name();
         return [
-            'name' => fake()->name(),
+            'name' => $name,
+            'name_slug' => Str::slug($name, '_'),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => Hash::make('123456'), // password

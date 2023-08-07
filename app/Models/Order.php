@@ -18,5 +18,5 @@ class Order extends BaseModel
 {
     protected $table = 'orders';
 
-    protected $fillable = ['status', 'customer_id', 'total_price'];
+    protected $fillable = ['status', 'customer_id', 'total_price', 'shipping_date', 'delivery_date', 'shipping_address', 'delivery_address'];
 }
