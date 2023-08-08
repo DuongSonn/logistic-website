@@ -9,4 +9,5 @@ interface OrderRepositoryInterface
     public function findAllByFilter($filter);
     public function create($data);
     public function updateById(Order $data);
+    public function findById($id);
 }

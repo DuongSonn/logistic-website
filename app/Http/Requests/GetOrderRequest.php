@@ -23,11 +23,11 @@ class GetOrderRequest extends ApiRequest
     {
         return [
             //
-            'offset' => 'optional|integer|min:0|default:0',
-            'limit' => 'optional|integer|min:0|default:20',
-            'order_number' => 'optional|string',
-            'customer_name' => 'optional|string',
-            'shipping_date' => 'optional|integer',
+            'offset' => 'nullable|integer|min:0|default:0',
+            'limit' => 'nullable|integer|min:0|default:20',
+            'number_order' => 'nullable|string',
+            'customer_name' => 'nullable|string',
+            'shipping_date' => 'nullable|integer',
         ];
     }
 }

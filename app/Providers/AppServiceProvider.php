@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Interfaces\OrderDetailRepositoryInterface;
 use App\Http\Interfaces\OrderRepositoryInterface;
 use App\Http\Interfaces\OrderServiceInterface;
 use App\Http\Interfaces\ProductRepositoryInterface;
@@ -9,7 +10,7 @@ use App\Http\Interfaces\ProductServiceInterface;
 use App\Http\Interfaces\UserRepositoryInterface;
 
 use App\Http\Interfaces\UserServiceInterface;
-
+use App\Http\Repository\OrderDetailRepository;
 use App\Http\Repository\OrderRepository;
 use App\Http\Repository\ProductRepository;
 use App\Http\Repository\UserRepository;
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
+        $this->app->bind(OrderDetailRepositoryInterface::class, OrderDetailRepository::class);
     }
 
     /**
