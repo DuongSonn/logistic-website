@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Interfaces\UserServiceInterface;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -16,7 +18,6 @@ class UserController extends Controller
 
     public function login(LoginRequest $request)
     {
-        // Get data from the request
         $data = $request->validated();
 
         // Call the UserService to create a new user
