@@ -5,6 +5,7 @@ namespace App\Http\Services;
 use App\Helpers\ApiResponse;
 use App\Http\Interfaces\UserRepositoryInterface;
 use App\Http\Interfaces\UserServiceInterface;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserService implements UserServiceInterface
 {
@@ -30,7 +31,31 @@ class UserService implements UserServiceInterface
             return ApiResponse::error('Invalid password', null);
         }
 
-        return true;
+        $credentials = request(['email', 'password']);
+        if (!$token = auth('api')->attempt($credentials)) {
+            return ApiResponse::error('Unauthorized', 401);
+        }
+
+        $data = [
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60
+        ];
+
+        return ApiResponse::success($data, null);
+    }
+
+    public function refresh()
+    {
+        $token = auth('api')->refresh();
+        $data = [
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL() * 60
+        ];
+
+        return ApiResponse::success($data, null);
+
     }
 
 }
