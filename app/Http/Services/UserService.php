@@ -5,7 +5,6 @@ namespace App\Http\Services;
 use App\Helpers\ApiResponse;
 use App\Http\Interfaces\UserRepositoryInterface;
 use App\Http\Interfaces\UserServiceInterface;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserService implements UserServiceInterface
 {
