@@ -19,7 +19,7 @@ class OrderService implements OrderServiceInterface
         
     }
 
-    public function update($id, $data)
+    public function update($data)
     {
         
     }

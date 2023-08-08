@@ -9,7 +9,7 @@ class ProductRepository implements ProductRepositoryInterface
 {
     public function findAll()
     {
-        $products = Product::findAll();
+        $products = Product::all();
         return $products;
     }
 }

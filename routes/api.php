@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,4 +22,20 @@ Route::group([
 ], function ($router) {
     Route::post('login', [UserController::class, 'login']);
     Route::post('refresh', [UserController::class, 'refresh']);
+});
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'products'
+], function ($router) {
+    Route::get('/list', [ProductController::class, 'getProducts']);
+});
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'orders'
+], function ($router) {
+    Route::get('/list', [OrderController::class, 'getOrders']);
+    Route::post('/create', [OrderController::class, 'create']);
+    Route::put('/update', [OrderController::class, 'update']);
 });

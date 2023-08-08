@@ -6,5 +6,5 @@ interface OrderServiceInterface
 {
     public function getOrders($filter);
     public function create($data);
-    public function update($id, $data);
+    public function update($data);
 }
