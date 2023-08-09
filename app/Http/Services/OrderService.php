@@ -138,6 +138,16 @@ class OrderService implements OrderServiceInterface
 
     public function getOrders($filter)
     {
+        $user = auth('api')->user();
+        switch ($user['role']) {
+            case Role::Customer->value:
+                $filter['customer_id'] = $user['id'];
+                break;
+            
+            default:
+                # code...
+                break;
+        }
         $orders = $this->orderRepo->findAllByFilter($filter);
         $count = $this->orderRepo->countByFilter($filter);
 

@@ -25,8 +25,12 @@ class OrderRepository implements OrderRepositoryInterface
         $shippingDate = $filter['shipping_date'] ?? null;
         $numberOrder = $filter['number_order'] ?? null;
         $customerName = $filter['customer_name'] ?? null;
+        $customerId =$filter['customer_id'] ?? null;
 
         $order = Order::limit($limit)->offset($offset);
+        if ($customerId) {
+            $order->where('customer_id', $customerId);
+        }
         if ($shippingDate) {
             $order->where('shipping_date', '=',  $shippingDate);
         }
