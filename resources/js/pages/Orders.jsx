@@ -11,15 +11,19 @@ import {
     Modal,
     Form,
     message,
+    Select,
 } from "antd";
 import { get, post, put } from "../utils/request";
 import { getLocalStorageItem } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import moment from "moment-timezone";
 
+const TIMEZONE = "Asia/Ho_Chi_Minh";
+
 function Orders() {
     const [messageApi, contextHolder] = message.useMessage();
     const navigate = useNavigate();
+    const [form] = Form.useForm();
 
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -29,6 +33,10 @@ function Orders() {
     const [searchNumberOrder, setSearchNumberOrder] = useState("");
     const [searchCustomerName, setSearchCustomerName] = useState("");
     const [searchShippingDate, setSearchShippingDate] = useState(0);
+    const [numberOfProducts, setNumberOfProducts] = useState(1);
+    const [modalTitle, setModalTitle] = useState("Create Order");
+    const [products, setProducts] = useState([]);
+    const [order, setOrder] = useState({});
 
     const user = JSON.parse(getLocalStorageItem("user"));
     const getOrders = (filter) => {
@@ -51,7 +59,10 @@ function Orders() {
                     ordersData.push({
                         key: id,
                         number_order,
-                        shipping_date,
+                        shipping_date: moment
+                            .unix(shipping_date)
+                            .tz(TIMEZONE)
+                            .format("YYYY-MM-DD"),
                         customer_name: user.name,
                     });
                 }
@@ -69,12 +80,35 @@ function Orders() {
                 }
             });
     };
+    const getProducts = () => {
+        get(
+            "/products/list",
+            {},
+            {
+                Authorization: `bearer ${user.access_token}`,
+            }
+        )
+            .then((response) => {
+                const data = response.data.data;
+                setProducts(data);
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const data = error.response.data;
+                    messageApi.open({
+                        type: "error",
+                        content: data.message,
+                    });
+                }
+            });
+    };
 
     useEffect(() => {
         getOrders({
             limit: itemsPerPage,
             offset: (currentPage - 1) * itemsPerPage,
         });
+        getProducts();
     }, []);
 
     useEffect(() => {
@@ -144,7 +178,7 @@ function Orders() {
     const onSearchShippingDate = (date, dateString) => {
         if (dateString != "") {
             setSearchShippingDate(
-                moment.tz(dateString, "YYYY-MM-DD", "Asia/Ho_Chi_Minh").unix()
+                moment.tz(dateString, "YYYY-MM-DD", TIMEZONE).unix()
             );
         } else {
             setSearchShippingDate(0);
@@ -156,20 +190,175 @@ function Orders() {
         setOpen(true);
     };
     const handleCancel = () => {
-        console.log("Clicked cancel button");
+        console.log("cancel");
+        setOrder({});
+        form.resetFields();
+
         setOpen(false);
     };
 
     //
     const onSubmit = (values) => {
-        console.log("Success:", values);
+        const products = [];
+        let productsMemo = {};
+        for (const key in values) {
+            if (!key.includes("product_")) {
+                continue;
+            }
+            const keyArr = key.split(`_`);
+            const index = keyArr[2];
+            const item = keyArr[1];
+            if (productsMemo[index]) {
+                productsMemo[index] = {
+                    ...productsMemo[index],
+                    [item]: values[key],
+                };
+            } else {
+                productsMemo = {
+                    ...productsMemo,
+                    [index]: { [item]: values[key] },
+                };
+            }
+        }
+        for (const key in productsMemo) {
+            products.push(productsMemo[key]);
+        }
+
+        const {
+            delivery_date,
+            shipping_date,
+            shipping_address,
+            delivery_address,
+        } = values;
+        let params = {
+            shipping_address,
+            delivery_address,
+            products,
+            delivery_date: moment
+                .tz(
+                    delivery_date.format("YYYY-MM-DD"),
+                    "YYYY-MM-DD",
+                    "Asia/Ho_Chi_Minh"
+                )
+                .unix(),
+            shipping_date: moment
+                .tz(
+                    shipping_date.format("YYYY-MM-DD"),
+                    "YYYY-MM-DD",
+                    "Asia/Ho_Chi_Minh"
+                )
+                .unix(),
+        };
+
+        if (Object.keys(order).length !== 0) {
+            params = {
+                ...params,
+                id: values.id,
+                status: values.status,
+            };
+
+            put("/orders/update", params, {
+                Authorization: `bearer ${user.access_token}`,
+            })
+                .then((response) => {
+                    getOrders({
+                        limit: itemsPerPage,
+                        offset: 0,
+                    });
+
+                    messageApi.open({
+                        type: "success",
+                        content: "Update order successfully",
+                    });
+                })
+                .catch((error) => {
+                    if (error.response) {
+                        const data = error.response.data;
+                        messageApi.open({
+                            type: "error",
+                            content: data.message,
+                        });
+                    }
+                });
+        } else {
+            post("/orders/create", params, {
+                Authorization: `bearer ${user.access_token}`,
+            })
+                .then((response) => {
+                    getOrders({
+                        limit: itemsPerPage,
+                        offset: 0,
+                    });
+
+                    messageApi.open({
+                        type: "success",
+                        content: "Create order successfully",
+                    });
+                })
+                .catch((error) => {
+                    if (error.response) {
+                        const data = error.response.data;
+                        messageApi.open({
+                            type: "error",
+                            content: data.message,
+                        });
+                    }
+                });
+        }
+
         setOpen(false);
+        form.resetFields();
     };
 
     //
     const onClickDetailOrder = (data) => {
-        console.log(data);
-        setOpen(true);
+        get(
+            "/orders/info",
+            {
+                id: data.key,
+            },
+            {
+                Authorization: `bearer ${user.access_token}`,
+            }
+        )
+            .then((response) => {
+                const data = response.data.data;
+                setOrder(data);
+
+                setOpen(true);
+                setModalTitle("Detail Order");
+                setNumberOfProducts(data.order_details.length);
+
+                let updateField = {
+                    id: data.id,
+                    customer_name: data.user.name,
+                    number_order: data.number_order,
+                    shipping_date: moment.unix(data.shipping_date).tz(TIMEZONE),
+                    delivery_date: moment.unix(data.delivery_date).tz(TIMEZONE),
+                    delivery_address: data.delivery_address,
+                    shipping_address: data.shipping_address,
+                    status: data.status,
+                };
+                for (let i = 0; i < data.order_details.length; i++) {
+                    const item = data.order_details[i];
+                    updateField = {
+                        ...updateField,
+                        [`product_id_${i}`]: item.product_id,
+                        [`product_amount_${i}`]: item.amount,
+                    };
+                }
+
+                form.setFieldsValue(updateField);
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const data = error.response.data;
+                    messageApi.open({
+                        type: "error",
+                        content: data.message,
+                    });
+                }
+            });
     };
 
     return (
@@ -200,7 +389,7 @@ function Orders() {
                     </Col>
                     <Col span={6}>
                         <Button type="primary" onClick={showModal}>
-                            Open Modal with async logic
+                            Create Order
                         </Button>
                     </Col>
                 </Row>
@@ -228,7 +417,7 @@ function Orders() {
             </BaseLayout>
 
             <Modal
-                title="Title"
+                title={modalTitle}
                 open={open}
                 onCancel={handleCancel}
                 footer={null}
@@ -249,32 +438,148 @@ function Orders() {
                     }}
                     onFinish={onSubmit}
                     autoComplete="off"
+                    form={form}
                 >
-                    <Form.Item
-                        label="Username"
-                        name="username"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input your username!",
-                            },
-                        ]}
-                    >
+                    <Form.Item label="id" name="id" hidden={true}>
                         <Input />
                     </Form.Item>
 
                     <Form.Item
-                        label="Password"
-                        name="password"
+                        label="Number Order"
+                        name="number_order"
+                        hidden={Object.keys(order).length === 0}
+                    >
+                        <Input disabled={true} />
+                    </Form.Item>
+                    <Form.Item
+                        label="Customer Name"
+                        name="customer_name"
+                        hidden={Object.keys(order).length === 0}
+                    >
+                        <Input disabled={true} />
+                    </Form.Item>
+                    <Form.Item
+                        label="Status"
+                        name="status"
+                        hidden={Object.keys(order).length === 0}
+                    >
+                        <Select placeholder="Select Status">
+                            <Select.Option value={"pending"}>
+                                Pending
+                            </Select.Option>
+                            <Select.Option value={"delivering"}>
+                                Delivering
+                            </Select.Option>
+                            <Select.Option value={"canceled"}>
+                                Canceled
+                            </Select.Option>
+                            <Select.Option value={"completed"}>
+                                Completed
+                            </Select.Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item
+                        label="Shipping Date"
+                        name="shipping_date"
                         rules={[
                             {
                                 required: true,
-                                message: "Please input your password!",
+                                message: "Please input your shipping date!",
                             },
                         ]}
                     >
-                        <Input.Password />
+                        <DatePicker
+                            disabled={Object.keys(order).length !== 0}
+                        />
                     </Form.Item>
+                    <Form.Item
+                        label="Delivery Date"
+                        name="delivery_date"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input your delivery date!",
+                            },
+                        ]}
+                    >
+                        <DatePicker
+                            disabled={Object.keys(order).length !== 0}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Shipping Address"
+                        name="shipping_address"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input your shipping address!",
+                            },
+                        ]}
+                    >
+                        <Input disabled={Object.keys(order).length !== 0} />
+                    </Form.Item>
+                    <Form.Item
+                        label="Delivery Address"
+                        name="delivery_address"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please input your delivery address!",
+                            },
+                        ]}
+                    >
+                        <Input disabled={Object.keys(order).length !== 0} />
+                    </Form.Item>
+                    {[...Array(numberOfProducts)].map((_, index) => (
+                        <Form.Item
+                            label="Products"
+                            style={{
+                                marginBottom: 0,
+                            }}
+                        >
+                            <Form.Item
+                                name={`product_id_${index}`}
+                                rules={[
+                                    {
+                                        required: true,
+                                    },
+                                ]}
+                                style={{
+                                    display: "inline-block",
+                                    width: "calc(50% - 8px)",
+                                }}
+                            >
+                                <Select
+                                    placeholder="Select Product"
+                                    disabled={Object.keys(order).length !== 0}
+                                >
+                                    {products.map((product) => (
+                                        <Select.Option value={product.id}>
+                                            {product.name}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                            <Form.Item
+                                name={`product_amount_${index}`}
+                                rules={[
+                                    {
+                                        required: true,
+                                    },
+                                ]}
+                                style={{
+                                    display: "inline-block",
+                                    width: "calc(50% - 8px)",
+                                    margin: "0 8px",
+                                }}
+                            >
+                                <Input
+                                    placeholder="Amount"
+                                    disabled={Object.keys(order).length !== 0}
+                                />
+                            </Form.Item>
+                        </Form.Item>
+                    ))}
                     <Form.Item
                         wrapperCol={{
                             offset: 20,

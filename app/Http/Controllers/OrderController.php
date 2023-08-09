@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Interfaces\OrderServiceInterface;
 use App\Http\Requests\CreateOrderRequest;
+use App\Http\Requests\GetOrderDetailRequest;
 use App\Http\Requests\GetOrderRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\UpdateOrderRequest;
@@ -52,6 +53,19 @@ class OrderController extends Controller
 
         // Call the OrderService to create a new order
         $data = $this->orderService->update($data);
+        if ($data['success'] == false) {
+            return response()->json($data, 500);
+        }
+
+        return response()->json($data, 200);
+    }
+
+    public function getOrderDetail(GetOrderDetailRequest $request)
+    {
+        $data = $request->validated();
+
+        // Call the OrderService to create a new order
+        $data = $this->orderService->getOrderDetail($data);
         if ($data['success'] == false) {
             return response()->json($data, 500);
         }

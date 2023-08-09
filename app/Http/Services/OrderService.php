@@ -144,4 +144,10 @@ class OrderService implements OrderServiceInterface
         $res = ['orders' => $orders, 'count'=> $count];
         return ApiResponse::success($res, null);
     }
+
+    public function getOrderDetail($data) {
+        $data = $this->orderRepo->findById($data['id']);
+        return ApiResponse::success($data, null);
+    }
+
 }

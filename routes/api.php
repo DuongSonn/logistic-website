@@ -38,4 +38,5 @@ Route::group([
     Route::get('/list', [OrderController::class, 'getOrders']);
     Route::post('/create', [OrderController::class, 'create']);
     Route::put('/update', [OrderController::class, 'update']);
+    Route::get('/info', [OrderController::class, 'getOrderDetail']);
 });
