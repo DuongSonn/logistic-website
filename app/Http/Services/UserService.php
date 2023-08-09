@@ -5,6 +5,7 @@ namespace App\Http\Services;
 use App\Helpers\ApiResponse;
 use App\Http\Interfaces\UserRepositoryInterface;
 use App\Http\Interfaces\UserServiceInterface;
+use Carbon\Carbon;
 
 class UserService implements UserServiceInterface
 {
@@ -31,7 +32,7 @@ class UserService implements UserServiceInterface
         }
 
         $credentials = request(['email', 'password']);
-        if (!$token = auth('api')->attempt($credentials)) {
+        if (!$token = auth('api')->setTTL(Carbon::now()->addDays(365)->timestamp)->attempt($credentials)) {
             return ApiResponse::error('Unauthorized', 401);
         }
 

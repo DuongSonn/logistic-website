@@ -35,7 +35,7 @@ class OrderService implements OrderServiceInterface
         }
 
         $timezone = 'Asia/Ho_Chi_Minh';
-        $currentTime = Carbon::now()->tz($timezone)->timestamp;
+        $currentTime = Carbon::now()->tz($timezone)->startOfDay()->timestamp;
 
         // Get all products data
         $productDBs = $this->productRepo->findAll();
@@ -138,7 +138,10 @@ class OrderService implements OrderServiceInterface
 
     public function getOrders($filter)
     {
-        $data  = $this->orderRepo->findAllByFilter($filter);
-        return ApiResponse::success($data, null);
+        $orders = $this->orderRepo->findAllByFilter($filter);
+        $count = $this->orderRepo->countByFilter($filter);
+
+        $res = ['orders' => $orders, 'count'=> $count];
+        return ApiResponse::success($res, null);
     }
 }

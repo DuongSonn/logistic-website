@@ -4,6 +4,7 @@ function getLocalStorageItem(key) {
         if (serializedValue === null) {
             return undefined;
         }
+
         return JSON.parse(serializedValue);
     } catch (error) {
         console.error("Error getting item from local storage:", error);

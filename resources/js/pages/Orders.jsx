@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import BaseLayout from "../components/BaseLayout";
 import {
     Table,
@@ -10,44 +10,106 @@ import {
     Button,
     Modal,
     Form,
+    message,
 } from "antd";
+import { get, post, put } from "../utils/request";
+import { getLocalStorageItem } from "../utils/auth";
+import { useNavigate } from "react-router-dom";
+import moment from "moment-timezone";
 
 function Orders() {
+    const [messageApi, contextHolder] = message.useMessage();
+    const navigate = useNavigate();
+
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [totalOrders, setTotalOrders] = useState(0);
     const [open, setOpen] = useState(false);
-    const [confirmLoading, setConfirmLoading] = useState(false);
-    const [modalText, setModalText] = useState("Content of the modal");
-    const dataSource = [
-        {
-            key: "1",
-            name: "Mike",
-            age: 32,
-            address: "10 Downing Street",
-        },
-        {
-            key: "2",
-            name: "John",
-            age: 42,
-            address: "10 Downing Street",
-        },
-    ];
+    const [orders, setOrders] = useState([]);
+    const [searchNumberOrder, setSearchNumberOrder] = useState("");
+    const [searchCustomerName, setSearchCustomerName] = useState("");
+    const [searchShippingDate, setSearchShippingDate] = useState(0);
+
+    const user = JSON.parse(getLocalStorageItem("user"));
+    const getOrders = (filter) => {
+        get(
+            "/orders/list",
+            {
+                ...filter,
+            },
+            {
+                Authorization: `bearer ${user.access_token}`,
+            }
+        )
+            .then((response) => {
+                const data = response.data.data;
+                const { orders, count } = data;
+
+                const ordersData = [];
+                for (const item of orders) {
+                    const { id, shipping_date, number_order, user } = item;
+                    ordersData.push({
+                        key: id,
+                        number_order,
+                        shipping_date,
+                        customer_name: user.name,
+                    });
+                }
+
+                setOrders(ordersData);
+                setTotalOrders(count);
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const data = error.response.data;
+                    messageApi.open({
+                        type: "error",
+                        content: data.message,
+                    });
+                }
+            });
+    };
+
+    useEffect(() => {
+        getOrders({
+            limit: itemsPerPage,
+            offset: (currentPage - 1) * itemsPerPage,
+        });
+    }, []);
+
+    useEffect(() => {
+        let filter = {
+            limit: itemsPerPage,
+            offset: (currentPage - 1) * itemsPerPage,
+        };
+        if (searchCustomerName !== "") {
+            filter["customer_name"] = searchCustomerName;
+        }
+        if (searchNumberOrder !== "") {
+            filter["number_order"] = searchNumberOrder;
+        }
+        if (searchShippingDate !== 0) {
+            filter["shipping_date"] = searchShippingDate;
+        }
+
+        getOrders(filter);
+    }, [searchCustomerName, searchNumberOrder, searchShippingDate]);
 
     const columns = [
         {
-            title: "Name",
-            dataIndex: "name",
-            key: "name",
+            title: "Number Order",
+            dataIndex: "number_order",
+            key: "number_order",
         },
         {
-            title: "Age",
-            dataIndex: "age",
-            key: "age",
+            title: "Customer Name",
+            dataIndex: "customer_name",
+            key: "customer_name",
         },
         {
-            title: "Address",
-            dataIndex: "address",
-            key: "address",
+            title: "Shipping Date",
+            dataIndex: "shipping_date",
+            key: "shipping_date",
         },
         {
             title: "Action",
@@ -55,7 +117,7 @@ function Orders() {
             render: (_, record) => {
                 return (
                     <Button onClick={() => onClickDetailOrder(record)}>
-                        Invite {record.name}
+                        Detail
                     </Button>
                 );
             },
@@ -65,20 +127,28 @@ function Orders() {
     const handlePaginationChange = (page, pageSize) => {
         setCurrentPage(page);
         setItemsPerPage(pageSize);
+
+        getOrders({
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+        });
     };
 
-    // Calculate the starting index and ending index for the data slice
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-
-    // Slice the data to display only the items for the current page
-    const paginatedData = dataSource.slice(startIndex, endIndex);
-
     // Handle search data
-    const onSearchOrderNumber = (value) => console.log(value);
-    const onSearchCustomerName = (value) => console.log(value);
+    const onSearchOrderNumber = (value) => {
+        setSearchNumberOrder(value);
+    };
+    const onSearchCustomerName = (value) => {
+        setSearchCustomerName(value);
+    };
     const onSearchShippingDate = (date, dateString) => {
-        console.log(date, dateString);
+        if (dateString != "") {
+            setSearchShippingDate(
+                moment.tz(dateString, "YYYY-MM-DD", "Asia/Ho_Chi_Minh").unix()
+            );
+        } else {
+            setSearchShippingDate(0);
+        }
     };
 
     // Handle modal
@@ -104,28 +174,29 @@ function Orders() {
 
     return (
         <>
+            {contextHolder}
             <BaseLayout>
                 <Row gutter={24} style={{ marginBottom: "16px" }}>
                     <Col span={6}>
                         <Input.Search
-                            placeholder="input search text"
+                            placeholder="Search number order"
                             onSearch={onSearchOrderNumber}
-                            style={{
-                                width: 200,
-                            }}
+                            style={{}}
                         />
                     </Col>
                     <Col span={6}>
                         <Input.Search
-                            placeholder="input search text"
+                            placeholder="Search customer name"
                             onSearch={onSearchCustomerName}
-                            style={{
-                                width: 200,
-                            }}
+                            style={{}}
                         />
                     </Col>
                     <Col span={6}>
-                        <DatePicker onChange={onSearchShippingDate} />
+                        <DatePicker
+                            onChange={onSearchShippingDate}
+                            placeholder="Search shipping date"
+                            style={{}}
+                        />
                     </Col>
                     <Col span={6}>
                         <Button type="primary" onClick={showModal}>
@@ -136,7 +207,7 @@ function Orders() {
                 <Row gutter={24}>
                     <Col span={24}>
                         <Table
-                            dataSource={dataSource}
+                            dataSource={orders}
                             columns={columns}
                             pagination={false}
                         />
@@ -147,7 +218,7 @@ function Orders() {
                             }}
                             current={currentPage}
                             pageSize={itemsPerPage}
-                            total={dataSource.length}
+                            total={totalOrders}
                             showSizeChanger
                             showTotal={(total) => `Total ${total} items`}
                             onChange={handlePaginationChange}
@@ -159,7 +230,6 @@ function Orders() {
             <Modal
                 title="Title"
                 open={open}
-                confirmLoading={confirmLoading}
                 onCancel={handleCancel}
                 footer={null}
             >

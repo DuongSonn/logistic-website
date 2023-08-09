@@ -10,4 +10,5 @@ interface OrderRepositoryInterface
     public function create($data);
     public function updateById(Order $data);
     public function findById($id);
+    public function countByFilter($filter);
 }
