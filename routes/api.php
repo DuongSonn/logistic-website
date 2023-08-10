@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
@@ -22,6 +23,7 @@ Route::group([
 ], function ($router) {
     Route::post('login', [UserController::class, 'login']);
     Route::post('refresh', [UserController::class, 'refresh']);
+    Route::get('/list', [UserController::class, 'getUsers']);
 });
 
 Route::group([
@@ -39,4 +41,19 @@ Route::group([
     Route::post('/create', [OrderController::class, 'create']);
     Route::put('/update', [OrderController::class, 'update']);
     Route::get('/info', [OrderController::class, 'getOrderDetail']);
+});
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'users'
+], function ($router) {
+    Route::get('/list', [UserController::class, 'getUsers']);
+});
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'messages'
+], function ($router) {
+    Route::get('/list', [MessageController::class, 'getUserMessages']);
+    Route::post('/create', [MessageController::class, 'createMessage']);
 });

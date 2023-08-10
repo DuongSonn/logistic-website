@@ -5,6 +5,7 @@ namespace App\Http\Services;
 use App\Helpers\ApiResponse;
 use App\Http\Interfaces\UserRepositoryInterface;
 use App\Http\Interfaces\UserServiceInterface;
+use App\Models\Role;
 use Carbon\Carbon;
 
 class UserService implements UserServiceInterface
@@ -58,6 +59,16 @@ class UserService implements UserServiceInterface
 
         return ApiResponse::success($data, null);
 
+    }
+
+    public function getUsers()
+    {
+        $user = auth('api')->user();
+        
+        $data = $this->userRepo->findByRole($user->role);
+
+        return ApiResponse::success($data, null);
+        
     }
 
 }
