@@ -5,6 +5,7 @@ import Login from "./Login";
 import Dashboard from "./Dashboard";
 import Chat from "./Chat";
 import Orders from "./Orders";
+import Rating from "./Rating";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/rates" element={<Rating />} />
         </Routes>
     );
 }

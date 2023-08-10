@@ -3,6 +3,7 @@
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -57,4 +58,12 @@ Route::group([
 ], function ($router) {
     Route::get('/list', [MessageController::class, 'getUserMessages']);
     Route::post('/create', [MessageController::class, 'createMessage']);
+});
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'reviews'
+], function ($router) {
+    Route::get('/list', [ReviewController::class, 'getUserMessages']);
+    Route::post('/create', [ReviewController::class, 'createMessage']);
 });

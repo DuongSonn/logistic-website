@@ -1,7 +1,11 @@
 import React, { useEffect } from "react";
 import { getLocalStorageItem } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
-import { OrderedListOutlined, MessageOutlined } from "@ant-design/icons";
+import {
+    OrderedListOutlined,
+    MessageOutlined,
+    StarOutlined,
+} from "@ant-design/icons";
 import { Layout, Menu } from "antd";
 const { Content, Footer, Sider } = Layout;
 
@@ -18,6 +22,7 @@ function getItem(label, key, icon, children, type) {
 const items = [
     getItem("Orders", "orders", <OrderedListOutlined />, null),
     getItem("Chat", "chat", <MessageOutlined />, null),
+    getItem("Rates", "rates", <StarOutlined />, null),
 ];
 
 function BaseLayout({ children }) {
