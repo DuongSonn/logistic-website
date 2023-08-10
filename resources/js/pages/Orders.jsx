@@ -17,6 +17,8 @@ import { get, post, put } from "../utils/request";
 import { getLocalStorageItem } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import moment from "moment-timezone";
+import Pusher from "pusher-js";
+import Echo from "laravel-echo";
 
 const TIMEZONE = "Asia/Ho_Chi_Minh";
 
@@ -128,6 +130,30 @@ function Orders() {
 
         getOrders(filter);
     }, [searchCustomerName, searchNumberOrder, searchShippingDate]);
+
+    useEffect(() => {
+        Pusher.logToConsole = true;
+
+        const pusher = new Pusher("6c674ea590e0817e5b80", {
+            cluster: "ap1",
+        });
+
+        const channel = pusher.subscribe("orders");
+        channel.bind("order_updated", function (data) {
+            const { role, user_id } = user;
+            if (
+                user_id == data.message ||
+                role === "admin" ||
+                role === "transporter"
+            ) {
+                console.log("refresh orders");
+                getOrders({
+                    limit: itemsPerPage,
+                    offset: 0,
+                });
+            }
+        });
+    }, []);
 
     const columns = [
         {

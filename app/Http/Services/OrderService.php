@@ -2,6 +2,7 @@
 
 namespace App\Http\Services;
 
+use App\Events\OrderUpdated;
 use App\Helpers\ApiResponse;
 use App\Http\Interfaces\OrderDetailRepositoryInterface;
 use App\Http\Interfaces\OrderRepositoryInterface;
@@ -132,6 +133,8 @@ class OrderService implements OrderServiceInterface
         $order['status'] = $status;
 
         $this->orderRepo->updateById($order);
+
+        event(new OrderUpdated($order->customer_id));
 
         return ApiResponse::success(null, null); 
     }
