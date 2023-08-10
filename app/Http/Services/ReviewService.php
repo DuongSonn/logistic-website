@@ -39,8 +39,10 @@ class ReviewService implements ReviewServiceInterface
         }
 
         $reviews = $this->reviewRepo->findByFilter($filter);
+        $count = $this->reviewRepo->countByFilter($filter);
 
-        return ApiResponse::success($reviews, null);
+        $res = ['reviews' => $reviews, 'count'=> $count];
 
+        return ApiResponse::success($res, null);
     }
 }

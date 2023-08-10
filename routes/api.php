@@ -64,6 +64,6 @@ Route::group([
     'middleware' => 'api',
     'prefix' => 'reviews'
 ], function ($router) {
-    Route::get('/list', [ReviewController::class, 'getUserMessages']);
-    Route::post('/create', [ReviewController::class, 'createMessage']);
+    Route::get('/list', [ReviewController::class, 'getReviews']);
+    Route::post('/create', [ReviewController::class, 'create']);
 });

@@ -20,4 +20,10 @@ class ReviewRepository implements ReviewRepositoryInterface
     {
         return Review::create($data);
     }
+
+    public function countByFilter($filter)
+    {
+        
+        return Review::all()->count();
+    }
 }
