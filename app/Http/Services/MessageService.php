@@ -22,6 +22,7 @@ class MessageService implements MessageServiceInterface
         $receiverId = $data['receiver_id'];
 
         $messages = $this->messageRepo->findUserMessages($senderId, $receiverId);
+        $messages = array_reverse($messages->toArray());
         
         return ApiResponse::success($messages, null);
     }

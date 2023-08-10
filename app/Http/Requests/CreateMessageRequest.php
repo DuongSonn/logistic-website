@@ -24,7 +24,7 @@ class CreateMessageRequest extends ApiRequest
         return [
             //
             'message' => 'string|required',
-            'receiver_id' => 'string|required'
+            'receiver_id' => 'int|required'
         ];
     }
 }

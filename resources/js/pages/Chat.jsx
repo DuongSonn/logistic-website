@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
 import BaseLayout from "../components/BaseLayout";
-import { Row, List, Col } from "antd";
+import { Row, List, Col, Form, Button, Input } from "antd";
 import { get, post } from "../utils/request";
 import { getLocalStorageItem } from "../utils/auth";
-
-const onClickUser = (data) => {
-    console.log(data);
-};
 
 function Chat() {
     const [users, setUsers] = useState([]);
     const [messages, setMessages] = useState([]);
+    const [selectedUser, setSelectedUser] = useState({});
+    const [form] = Form.useForm();
 
     const user = JSON.parse(getLocalStorageItem("user"));
 
@@ -37,6 +35,67 @@ function Chat() {
             });
     }, []);
 
+    const onClickUser = (data) => {
+        const receiverId = data.id;
+        setSelectedUser(data);
+
+        get(
+            "/messages/list",
+            {
+                receiver_id: receiverId,
+            },
+            {
+                Authorization: `bearer ${user.access_token}`,
+            }
+        )
+            .then((response) => {
+                const data = response.data.data;
+                setMessages(data);
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const data = error.response.data;
+                    messageApi.open({
+                        type: "error",
+                        content: data.message,
+                    });
+                }
+            });
+    };
+
+    const onSubmit = (values) => {
+        post(
+            "/messages/create",
+            {
+                message: values.message,
+                receiver_id: selectedUser.id,
+            },
+            {
+                Authorization: `bearer ${user.access_token}`,
+            }
+        )
+            .then((response) => {
+                setMessages([
+                    ...messages,
+                    {
+                        sender: user,
+                        message: values.message,
+                    },
+                ]);
+
+                form.resetFields();
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const data = error.response.data;
+                    messageApi.open({
+                        type: "error",
+                        content: data.message,
+                    });
+                }
+            });
+    };
+
     return (
         <BaseLayout>
             <Row gutter={24}>
@@ -55,21 +114,55 @@ function Chat() {
                     <List
                         itemLayout="horizontal"
                         dataSource={messages}
-                        style={{ maxHeight: "200px", overflow: "auto" }}
+                        style={{ maxHeight: "500px", overflow: "auto" }}
                         renderItem={(item, index) => (
                             <List.Item>
                                 <List.Item.Meta
-                                    title={
-                                        <a href="https://ant.design">
-                                            {item.title}
-                                        </a>
-                                    }
-                                    description="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                                    description={`${item.sender.name} : ${item.message}`}
                                 />
                             </List.Item>
                         )}
                     />
                 </Col>
+            </Row>
+            <Row gutter={24}>
+                <Form
+                    form={form}
+                    name="horizontal_login"
+                    layout="inline"
+                    onFinish={onSubmit}
+                    style={{
+                        position:
+                            "absolute" /* Position the item absolutely within the container */,
+                        bottom: 0 /* Distance from the bottom of the container */,
+                        padding: "20px",
+                        minWidth: "500px",
+                    }}
+                >
+                    <Form.Item
+                        name="message"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please enter your message",
+                            },
+                        ]}
+                        style={{
+                            minWidth: "400px",
+                        }}
+                    >
+                        <Input placeholder="Your message" />
+                    </Form.Item>
+                    <Form.Item shouldUpdate>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            disabled={Object.keys(selectedUser).length === 0}
+                        >
+                            Send
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Row>
         </BaseLayout>
     );

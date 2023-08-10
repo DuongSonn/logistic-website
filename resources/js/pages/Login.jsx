@@ -16,6 +16,7 @@ const Login = () => {
                     access_token: response.data.data.access_token,
                     user_id: response.data.data.user_id,
                     role: response.data.data.role,
+                    name: response.data.data.name,
                 };
 
                 setLocalStorageItem("user", JSON.stringify(data));

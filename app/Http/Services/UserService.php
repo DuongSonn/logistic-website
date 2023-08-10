@@ -42,7 +42,8 @@ class UserService implements UserServiceInterface
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
             'user_id' => $user['id'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'name' => $user['name']
         ];
 
         return ApiResponse::success($data, null);

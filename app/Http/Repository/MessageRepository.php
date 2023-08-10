@@ -16,7 +16,7 @@ class MessageRepository implements MessageRepositoryInterface
             ->orWhere(function ($query) use ($senderId, $receiverId) {
                 $query->where('sender_id', $senderId)
                 ->where('receiver_id', $receiverId);
-            })->orderBy('created_at')->limit(10)->get();
+            })->orderBy('created_at', 'DESC')->limit(10)->with(['sender', 'receiver'])->get();
         return $messages;
     }
 
