@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import BaseLayout from "../components/BaseLayout";
-import { Row, List, Col, Form, Button, Input } from "antd";
+import { Row, List, Col, Form, Button, Input, message } from "antd";
 import { get, post } from "../utils/request";
 import { getLocalStorageItem } from "../utils/auth";
 
 function Chat() {
     const [users, setUsers] = useState([]);
+    const [messageApi, contextHolder] = message.useMessage();
     const [messages, setMessages] = useState([]);
     const [selectedUser, setSelectedUser] = useState({});
     const [form] = Form.useForm();
@@ -33,6 +34,27 @@ function Chat() {
                     });
                 }
             });
+    }, []);
+
+    useEffect(() => {
+        Pusher.logToConsole = true;
+
+        const pusher = new Pusher("6c674ea590e0817e5b80", {
+            cluster: "ap1",
+        });
+
+        const channel = pusher.subscribe(`chats_${user.user_id}`);
+        channel.bind("new_message", function (data) {
+            if (data.sender_id === selectedUser.id) {
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        sender: data.sender,
+                        message: data.message.message,
+                    },
+                ]);
+            }
+        });
     }, []);
 
     const onClickUser = (data) => {

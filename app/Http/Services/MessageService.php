@@ -2,6 +2,7 @@
 
 namespace App\Http\Services;
 
+use App\Events\SendMessage;
 use App\Helpers\ApiResponse;
 use App\Http\Interfaces\MessageRepositoryInterface;
 use App\Http\Interfaces\MessageServiceInterface;
@@ -37,6 +38,8 @@ class MessageService implements MessageServiceInterface
             'message' => $data['message'],
         ];
         $message = $this->messageRepo->create($message);
+
+        event(new SendMessage($message, $data['receiver_id'], $user));
 
         return ApiResponse::success(null, null);
     }

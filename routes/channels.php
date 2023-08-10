@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Broadcast;
 Broadcast::channel('orders', function (User $user) {
     return true;
 });
+
+Broadcast::channel('chats_{userId}', function (User $user, int $userId) {
+    return $userId == $user->id;
+});
