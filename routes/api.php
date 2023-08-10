@@ -41,6 +41,7 @@ Route::group([
     Route::post('/create', [OrderController::class, 'create']);
     Route::put('/update', [OrderController::class, 'update']);
     Route::get('/info', [OrderController::class, 'getOrderDetail']);
+    Route::delete('/remove', [OrderController::class, 'removeOrder']);
 });
 
 Route::group([

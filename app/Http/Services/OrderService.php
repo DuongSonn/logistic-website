@@ -163,4 +163,21 @@ class OrderService implements OrderServiceInterface
         return ApiResponse::success($data, null);
     }
 
+    public function removeOrder($data)
+    {
+        $order = $this->orderRepo->findById($data['id']);
+        if (!$data) {
+            return ApiResponse::error("Order not found", null);
+        }
+
+        $user = auth('api')->user();
+        if ($user->role != Role::Admin->value && $order->customer_id != $user->id) {
+            return ApiResponse::error("Order not found", null);
+        }
+
+        $this->orderRepo->deleteById($order);
+
+        return ApiResponse::success(null, null);
+    }
+
 }

@@ -13,7 +13,7 @@ import {
     message,
     Select,
 } from "antd";
-import { get, post, put } from "../utils/request";
+import { get, post, put, remove } from "../utils/request";
 import { getLocalStorageItem } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import moment from "moment-timezone";
@@ -57,7 +57,8 @@ function Orders() {
 
                 const ordersData = [];
                 for (const item of orders) {
-                    const { id, shipping_date, number_order, user } = item;
+                    const { id, shipping_date, number_order, user, status } =
+                        item;
                     ordersData.push({
                         key: id,
                         number_order,
@@ -66,6 +67,7 @@ function Orders() {
                             .tz(TIMEZONE)
                             .format("YYYY-MM-DD"),
                         customer_name: user.name,
+                        status,
                     });
                 }
 
@@ -172,13 +174,23 @@ function Orders() {
             key: "shipping_date",
         },
         {
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
+        },
+        {
             title: "Action",
             key: "action",
             render: (_, record) => {
                 return (
-                    <Button onClick={() => onClickDetailOrder(record)}>
-                        Detail
-                    </Button>
+                    <>
+                        <Button onClick={() => onClickDetailOrder(record)}>
+                            Detail
+                        </Button>
+                        <Button onClick={() => onClickDeleteOrder(record)}>
+                            Delete
+                        </Button>
+                    </>
                 );
             },
         },
@@ -373,6 +385,39 @@ function Orders() {
                         [`product_amount_${i}`]: item.amount,
                     };
                 }
+
+                form.setFieldsValue(updateField);
+            })
+            .catch((error) => {
+                if (error.response) {
+                    const data = error.response.data;
+                    messageApi.open({
+                        type: "error",
+                        content: data.message,
+                    });
+                }
+            });
+    };
+
+    const onClickDeleteOrder = (data) => {
+        remove(
+            "/orders/remove",
+            {
+                id: data.key,
+            },
+            {
+                Authorization: `bearer ${user.access_token}`,
+            }
+        )
+            .then((response) => {
+                getOrders({
+                    limit: itemsPerPage,
+                    offset: 0,
+                });
+                messageApi.open({
+                    type: "success",
+                    content: "Remove order successfully!",
+                });
 
                 form.setFieldsValue(updateField);
             })

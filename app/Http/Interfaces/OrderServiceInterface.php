@@ -8,4 +8,5 @@ interface OrderServiceInterface
     public function create($data);
     public function update($data);
     public function getOrderDetail($data);
+    public function removeOrder($data);
 }

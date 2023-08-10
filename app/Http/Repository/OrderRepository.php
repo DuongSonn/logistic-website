@@ -77,4 +77,9 @@ class OrderRepository implements OrderRepositoryInterface
 
         return $total->count();
     }
+
+    public function deleteById(Order $order)
+    {
+        return $order->delete();
+    }
 }

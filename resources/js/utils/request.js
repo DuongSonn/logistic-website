@@ -33,3 +33,15 @@ export function put(url, data = {}, headers = {}) {
         },
     });
 }
+
+export function remove(url, params = {}, headers = {}) {
+    return axiosInstance.delete(url, {
+        headers: {
+            "Content-Type": "application/json",
+            ...headers,
+        },
+        params: {
+            ...params,
+        },
+    });
+}

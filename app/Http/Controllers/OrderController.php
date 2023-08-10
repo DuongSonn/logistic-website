@@ -72,4 +72,17 @@ class OrderController extends Controller
 
         return response()->json($data, 200);
     }
+
+    public function removeOrder(GetOrderDetailRequest $request)
+    {
+        $data = $request->validated();
+
+        // Call the OrderService to create a new order
+        $data = $this->orderService->removeOrder($data);
+        if ($data['success'] == false) {
+            return response()->json($data, 500);
+        }
+
+        return response()->json($data, 200);
+    }
 }
