@@ -18,4 +18,4 @@
   ## How to run
 -  Start FE: `npm run dev`
 -  Start BE: `php artisan serve`
--  Default Server will run on port 8000
+-  Default Server will run on port (both FE + BE) localhost:8000
